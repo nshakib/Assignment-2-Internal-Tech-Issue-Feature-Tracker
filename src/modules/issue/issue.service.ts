@@ -15,6 +15,67 @@ const createIssueIntoDB = async(payload:IIssue, reporter_id:number)=>{
     return result;
 }
 
+const getAllIssueFromDB = async(query:{
+    sort?:string;
+    type?:string;
+    status?: string;
+})=>{
+
+     // Step 1 — build WHERE clause dynamically
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+
+    if (query.type) {
+        values.push(query.type);
+        conditions.push(`type = $${values.length}`);
+    }
+
+    if (query.status) {
+        values.push(query.status);
+        conditions.push(`status = $${values.length}`);
+    }
+
+    const whereClause = conditions.length 
+        ? `WHERE ${conditions.join(" AND ")}` 
+        : "";
+
+    // Step 2 — sort order
+    const orderBy = query.sort === "oldest" ? "ASC" : "DESC";
+
+     // Step 3 — fetch issues
+    const issuesResult = await pool.query(`
+        SELECT id, title, description, type, status, reporter_id, created_at, updated_at 
+        FROM issues
+        ${whereClause}
+        ORDER BY created_at ${orderBy}
+    `,values);
+
+    const issues = issuesResult.rows;
+
+    // Step 4 — extract reporter IDs
+    const reporterIds = issues.map(issue => issue.reporter_id);
+    const reportersResult = await pool.query(
+        `SELECT id, name, role FROM users WHERE id = ANY($1)`,
+        [reporterIds]
+    );
+
+    // Step 5 — combine
+    const resultData = issues.map(issue => ({
+        id: issue.id,
+        title: issue.title,
+        description: issue.description,
+        type: issue.type,
+        status: issue.status,
+        reporter: reportersResult.rows.find(r => r.id === issue.reporter_id),
+        created_at: issue.created_at,
+        updated_at: issue.updated_at,
+    }));
+
+    return resultData;
+}
+
 export const issueService={
     createIssueIntoDB,
+    getAllIssueFromDB,
+
 }
