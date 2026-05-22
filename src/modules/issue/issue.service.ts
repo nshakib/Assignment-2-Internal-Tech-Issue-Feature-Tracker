@@ -74,8 +74,41 @@ const getAllIssueFromDB = async(query:{
     return resultData;
 }
 
+const getSingleIssueFromDB = async(id:string)=>{
+    
+    const result = await pool.query(`
+
+        SELECT id, title, description, type, status, reporter_id, created_at, updated_at 
+        FROM issues WHERE id = $1 
+        
+        `,
+        [id],
+    );
+    const issue = result.rows[0];
+
+    if (!issue) return null; // ← let controller handle 404
+
+    const reporterResult = await pool.query(
+        `SELECT id, name, role FROM users WHERE id = $1`,
+        [issue.reporter_id]
+    );
+
+    return {
+        id: issue.id,
+        title: issue.title,
+        description: issue.description,
+        type: issue.type,
+        status: issue.status,
+        reporter: reporterResult.rows[0],
+        created_at: issue.created_at,
+        updated_at: issue.updated_at,
+    };
+}
+
 export const issueService={
     createIssueIntoDB,
     getAllIssueFromDB,
+    getSingleIssueFromDB,
+
 
 }
