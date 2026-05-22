@@ -58,14 +58,14 @@ const loginUserIntoDB = async(payload:{
         }
 
         //3. Generate Token
-        const jwtpayload = {
+        const JwtPayload = {
             id: user.id,
             name: user.name,
             role: user.role,
             email: user.email,
         };
 
-        const token = jwt.sign(jwtpayload, config.secret as string, {
+        const token = jwt.sign(JwtPayload, config.secret as string, {
             expiresIn: "1d",
         });
 
