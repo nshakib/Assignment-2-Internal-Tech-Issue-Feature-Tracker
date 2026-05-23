@@ -27,6 +27,14 @@ const signup = async(req:Request, res:Response, next:NextFunction) =>{
 
 const login = async(req:Request, res:Response, next:NextFunction)=>{
     try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return sendResponse(res, {
+                statusCode: 400,
+                success: false,
+                message: "Email and password are required"
+            });
+        }
         const result = await authService.loginUserIntoDB(req.body);
 
         sendResponse(res,{

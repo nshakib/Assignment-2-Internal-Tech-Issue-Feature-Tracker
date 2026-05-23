@@ -24,8 +24,6 @@ const createUserIntoDB = async(payload:IUser) =>{
         `,
         [name, email, hashPassword, role]
     );
-
-    // delete result.rows[0].password;
     return result;
 }
 
@@ -34,10 +32,7 @@ const loginUserIntoDB = async(payload:{
     password: string;
 }) =>{
         const {email, password} = payload;
-        // 1. Check if the user exists -> Done
-        // 2. Compare the password -> Done
-        //3. Generate Token -> Done
-
+        
         // 1. Check if the user exists
         const userData = await pool.query(
             `
@@ -58,14 +53,14 @@ const loginUserIntoDB = async(payload:{
         }
 
         //3. Generate Token
-        const JwtPayload = {
+        const jwtPayload = {
             id: user.id,
             name: user.name,
             role: user.role,
             email: user.email,
         };
 
-        const token = jwt.sign(JwtPayload, config.secret as string, {
+        const token = jwt.sign(jwtPayload, config.secret as string, {
             expiresIn: "1d",
         });
 

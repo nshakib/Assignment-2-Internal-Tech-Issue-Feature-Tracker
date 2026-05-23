@@ -5,7 +5,7 @@ const globalErrorHandler = (errors:Error, req:Request, res:Response, next:NextFu
     sendResponse(res,{
         statusCode:500,
         success:false,
-        message:"Internal Server Error",
+        message: errors.message || "Internal Server Error",
         errors
     })
 }

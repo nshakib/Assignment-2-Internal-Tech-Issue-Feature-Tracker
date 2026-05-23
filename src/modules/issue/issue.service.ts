@@ -21,7 +21,7 @@ const getAllIssueFromDB = async(query:{
     status?: string;
 })=>{
 
-     // Step 1 — build WHERE clause dynamically
+    // Step 1 — build WHERE clause dynamically
     const conditions: string[] = [];
     const values: unknown[] = [];
 
@@ -51,6 +51,7 @@ const getAllIssueFromDB = async(query:{
     `,values);
 
     const issues = issuesResult.rows;
+    if (issues.length === 0) return [];
 
     // Step 4 — extract reporter IDs
     const reporterIds = issues.map(issue => issue.reporter_id);
@@ -144,7 +145,7 @@ const updateIssueFromDB = async(payload:IIssue, id:string, userId:number, userRo
         [title, description, type, status,id],
     );
 
-    return result.rows[0];;
+    return result.rows[0];
 }
 
 const deleteIssueFromDB = async(id:string)=>{
