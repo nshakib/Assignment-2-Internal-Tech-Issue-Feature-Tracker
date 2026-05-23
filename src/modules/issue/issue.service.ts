@@ -105,10 +105,53 @@ const getSingleIssueFromDB = async(id:string)=>{
     };
 }
 
+const updateIssueFromDB = async(payload:IIssue, id:string, userId:number, userRole:string)=>{
+    const { title, description, type,status } = payload;
+
+    // Step 1 — fetch existing issue
+    const issueResult = await pool.query(
+        `SELECT * FROM issues WHERE id = $1`,
+        [id]
+    );
+    
+    const issue = issueResult.rows[0];
+    // Step 2 — 404 if not found
+    if (!issue) return null;
+
+    // Step 3 — permission checks for contributor
+    if (userRole === "contributor") {
+        if (issue.reporter_id !== userId) {
+            throw new Error("FORBIDDEN");
+        }
+        if (issue.status !== "open") {
+            throw new Error("CONFLICT");
+        }
+    }
+
+    const result = await pool.query(
+        `
+        UPDATE issues 
+        SET 
+        title=COALESCE($1,title),
+        description=COALESCE($2,description),
+        type=COALESCE($3,type),
+        status=COALESCE($4,status),
+        updated_at = NOW()
+
+        WHERE id=$5 
+        RETURNING id, title, description, type, status, reporter_id, created_at, updated_at
+        `,
+        [title, description, type, status,id],
+    );
+
+    return result.rows[0];;
+}
+
 export const issueService={
     createIssueIntoDB,
     getAllIssueFromDB,
     getSingleIssueFromDB,
+    updateIssueFromDB,
 
 
 }
