@@ -14,6 +14,30 @@ const createIssue = async(req:Request, res:Response, next:NextFunction)=>{
             });
         }
 
+        if (title.length > 150) {
+            return sendResponse(res, {
+                statusCode: 400,
+                success: false,
+                message: "Title must not exceed 150 characters"
+            });
+        }
+
+          if (description.length < 20) {
+              return sendResponse(res, {
+                  statusCode: 400,
+                  success: false,
+                  message: "Description must be at least 20 characters"
+              });
+          }
+
+          if (!["bug", "feature_request"].includes(type)) {
+              return sendResponse(res, {
+                  statusCode: 400,
+                  success: false,
+                  message: "Type must be bug or feature_request"
+              });
+          }
+
         const result = await issueService.createIssueIntoDB(req.body, reporter_id)
 
         sendResponse(res,{
