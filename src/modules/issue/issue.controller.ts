@@ -13,6 +13,7 @@ const createIssue = async(req:Request, res:Response, next:NextFunction)=>{
                 message: "All fields are required" 
             });
         }
+
         const result = await issueService.createIssueIntoDB(req.body, reporter_id)
 
         sendResponse(res,{
